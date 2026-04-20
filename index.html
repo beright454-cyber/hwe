@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Galaxy English Quest</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Hind+Siliguri:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --galaxy-pink: #ff79c6;
+            --deep-purple: #282a36;
+            --neon-blue: #8be9fd;
+            --hot-pink: #ff2079;
+        }
+
+        * { box-sizing: border-box; }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            font-family: 'Fredoka One', cursive;
+            background: #0b0e14;
+            color: white;
+            overflow: hidden;
+        }
+
+        .galaxy-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, #4b0082 0%, #000 100%);
+            z-index: -1;
+        }
+
+        .nebula {
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background: url('https://www.transparenttextures.com/patterns/stardust.png');
+            animation: moveGalaxy 100s linear infinite;
+            opacity: 0.4;
+        }
+
+        @keyframes moveGalaxy {
+            from { transform: translate(0, 0); }
+            to { transform: translate(-50%, -50%); }
+        }
+
+        .app-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100vw;
+            padding: 15px;
+        }
+
+        .card {
+            display: none;
+            width: 100%;
+            max-width: 600px;
+            min-height: 70vh;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 2px solid rgba(255, 121, 198, 0.3);
+            border-radius: 40px;
+            padding: 40px 25px;
+            position: relative;
+            box-shadow: 0 0 50px rgba(255, 32, 121, 0.2);
+            text-align: center;
+            flex-direction: column;
+            justify-content: center;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .card.active { display: flex; }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .corner-3d {
+            position: absolute;
+            font-size: 5rem;
+            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5));
+            animation: float3d 4s infinite ease-in-out;
+            pointer-events: none;
+        }
+        .top-left { top: -20px; left: -20px; }
+        .bottom-right { bottom: -20px; right: -20px; }
+
+        @keyframes float3d {
+            0%, 100% { transform: translateY(0) rotate(5deg); }
+            50% { transform: translateY(-15px) rotate(-5deg); }
+        }
+
+        .level-header {
+            color: var(--neon-blue);
+            font-size: 1.2rem;
+            letter-spacing: 3px;
+            margin-bottom: 20px;
+        }
+
+        .question-text {
+            font-size: clamp(1.4rem, 5vw, 2.4rem);
+            color: #fff;
+            margin-bottom: 5px;
+        }
+
+        .pron-text {
+            font-family: 'Hind Siliguri', sans-serif;
+            font-size: 1.2rem;
+            color: var(--galaxy-pink);
+            margin-bottom: 30px;
+        }
+
+        .answer-text {
+            font-size: clamp(1.4rem, 5vw, 2.4rem);
+            color: #50fa7b;
+        }
+
+        .meaning-text {
+            font-family: 'Hind Siliguri', sans-serif;
+            font-size: 1.5rem;
+            color: #f1fa8c;
+            margin-top: 10px;
+        }
+
+        .nav-container {
+            margin-top: 40px;
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        button {
+            background: linear-gradient(45deg, var(--hot-pink), var(--galaxy-pink));
+            border: none;
+            padding: 15px 35px;
+            border-radius: 50px;
+            color: white;
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.2rem;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(255, 32, 121, 0.4);
+            transition: 0.3s;
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(255, 32, 121, 0.6);
+        }
+
+        button:disabled {
+            background: #444;
+            box-shadow: none;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .progress-bar {
+            position: absolute;
+            bottom: 20px;
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.4);
+        }
+    </style>
+</head>
+<body>
+
+<div class="galaxy-bg"><div class="nebula"></div></div>
+
+<div class="app-container" id="card-wrapper"></div>
+
+<script>
+    const data = [
+        {q: "Do you have a laptop?", p: "ডু ইউ হ্যাভ আ ল্যাপটপ?", a: "Yes, I have a laptop.", m: "হ্যাঁ, আমার একটি ল্যাপটপ আছে।", c1: "💻", c2: "✨"},
+        {q: "Don't you have a laptop?", p: "ডোন্ট ইউ হ্যাভ আ ল্যাপটপ?", a: "No, I don't have a laptop.", m: "না, আমার কোনো ল্যাপটপ নেই।", c1: "🚫", c2: "💻"},
+        {q: "When do you have free time?", p: "ওয়েন ডু ইউ হ্যাভ ফ্রি টাইম?", a: "I have free time in the evening.", m: "আমার বিকেলে অবসর সময় থাকে।", c1: "⏰", c2: "🌙"},
+        {q: "Why don't you have any pen?", p: "হোয়াই ডোন্ট ইউ হ্যাভ এনি পেন?", a: "I don't have any pen because I have lost it.", m: "আমার কাছে কলম নেই কারণ আমি হারিয়েছি।", c1: "🖊️", c2: "❓"},
+        {q: "Does India have a national flag?", p: "ডাজ ইন্ডিয়া হ্যাভ আ ন্যাশনাল ফ্ল্যাগ?", a: "Yes, India has a national flag.", m: "হ্যাঁ, ভারতের একটি জাতীয় পতাকা আছে।", c1: "🇮🇳", c2: "🚩"},
+        {q: "Does Taniska have a good personality?", p: "ডাজ তানিস্কা হ্যাভ আ গুড পারসোনালিটি?", a: "Yes, Taniska has a good personality.", m: "হ্যাঁ, তানিস্কার ব্যক্তিত্ব খুব ভালো।", c1: "👸", c2: "💎"},
+        {q: "Does he have an Email ID?", p: "ডাজ হি হ্যাভ অ্যান ইমেল আইডি?", a: "Yes, he has an Email ID.", m: "হ্যাঁ, তাঁর একটি ইমেল আইডি আছে।", c1: "📧", c2: "📨"},
+        {q: "Did you have any friend?", p: "ডিড ইউ হ্যাভ এনি ফ্রেন্ড?", a: "Yes, I had many friends.", m: "হ্যাঁ, আমার অনেক বন্ধু ছিল।", c1: "👫", c2: "💖"},
+        {q: "Didn't you have any enemy?", p: "ডিডন্ট ইউ হ্যাভ এনি এনিমি?", a: "No, I didn't have any enemy.", m: "না, আমার কোনো শত্রু ছিল না।", c1: "🛡️", c2: "🕊️"},
+        {q: "Do you like chocolate?", p: "ডু ইউ লাইক চকলেট?", a: "Yes, I like chocolate very much.", m: "হ্যাঁ, আমি চকলেট খুব পছন্দ করি।", c1: "🍫", c2: "😋"},
+        {q: "Does your mother cook tasty food?", p: "ডাজ ইয়োর মাদার কুক টেস্টি ফুড?", a: "Yes, my mother cooks tasty food.", m: "হ্যাঁ, মা খুব সুস্বাদু রান্না করেন।", c1: "🥘", c2: "👩‍🍳"},
+        {q: "Do you have a bicycle?", p: "ডু ইউ হ্যাভ আ বাইসাইকেল?", a: "Yes, I have a red bicycle.", m: "হ্যাঁ, আমার একটি লাল সাইকেল আছে।", c1: "🚲", c2: "💨"},
+        {q: "Why are you happy today?", p: "হোয়াই আর ইউ হ্যাপি টুডে?", a: "I am happy because it is my birthday.", m: "আমি খুশি কারণ আজ আমার জন্মদিন।", c1: "🎂", c2: "🎈"},
+        {q: "Does your father go to the office?", p: "ডাজ ইয়োর ফাদার গো টু দ্য অফিস?", a: "Yes, my father goes to the office.", m: "হ্যাঁ, আমার বাবা অফিসে যান।", c1: "💼", c2: "🏢"},
+        {q: "Did you brush your teeth today?", p: "ডিড ইউ ব্রাশ ইয়োর টিথ টুডে?", a: "Yes, I brushed my teeth today.", m: "হ্যাঁ, আমি আজ দাঁত মেজেছি।", c1: "🪥", c2: "🦷"},
+        {q: "Do you want to play in the park?", p: "ডু ইউ ওয়ান্ট টু প্লে ইন দ্য পার্ক?", a: "Yes, I want to play in the park.", m: "হ্যাঁ, আমি পার্কে খেলতে চাই।", c1: "🎢", c2: "🌳"},
+        {q: "When do you go to bed?", p: "ওয়েন ডু ইউ গো টু বেড?", a: "I go to bed at 9 o'clock at night.", m: "আমি রাত ৯টায় ঘুমাতে যাই।", c1: "😴", c2: "🌌"},
+        {q: "Does a cow give us milk?", p: "ডাজ আ কাউ গিভ আস মিল্ক?", a: "Yes, a cow gives us milk.", m: "হ্যাঁ, গরু আমাদের দুধ দেয়।", c1: "🐄", c2: "🥛"},
+        {q: "Do you have any siblings?", p: "ডু ইউ হ্যাভ এনি সিবলিংস?", a: "Yes, I have one younger sister.", m: "হ্যাঁ, আমার একটি ছোট বোন আছে।", c1: "👶", c2: "🧸"},
+        {q: "Why do you go to school?", p: "হোয়াই ডু ইউ গো টু স্কুল?", a: "I go to school to study and play.", m: "আমি শিখতে ও খেলতে স্কুলে যাই।", c1: "🏫", c2: "🎒"},
+        {q: "Did you finish your homework?", p: "ডিড ইউ ফিনিশ ইয়োর হোমওয়ার্ক?", a: "Yes, I finished it an hour ago.", m: "হ্যাঁ, আমি এক ঘণ্টা আগে শেষ করেছি।", c1: "📝", c2: "✏️"},
+        {q: "Does it rain in the summer?", p: "ডাজ ইট রেইন ইন দ্য সামার?", a: "Yes, sometimes it rains in the summer.", m: "হ্যাঁ, মাঝে মাঝে গ্রীষ্মে বৃষ্টি হয়।", c1: "⛈️", c2: "🌡️"},
+        {q: "Do you like to eat mangoes?", p: "ডু ইউ লাইক টু ইট ম্যাঙ্গোস?", a: "Yes, I love eating sweet mangoes.", m: "হ্যাঁ, আমি মিষ্টি আম খেতে ভালোবাসি।", c1: "🥭", c2: "🌞"},
+        {q: "Can you ride a horse?", p: "ক্যান ইউ রাইড আ হর্স?", a: "No, I cannot ride a horse.", m: "না, আমি ঘোড়ায় চড়তে পারি না।", c1: "🐎", c2: "🚫"},
+        {q: "Where is your school bag?", p: "হোয়্যার ইজ ইয়োর স্কুল ব্যাগ?", a: "My school bag is on the table.", m: "আমার স্কুলের ব্যাগটি টেবিলের ওপর।", c1: "🎒", c2: "🪑"},
+        {q: "Do you have a pet dog?", p: "ডু ইউ হ্যাভ আ পেট ডগ?", a: "No, I don't have a dog, but I want one.", m: "আমার কুকুর নেই, তবে একটি চাই।", c1: "🐶", c2: "🐕"},
+        {q: "Does your teacher love you?", p: "ডাজ ইয়োর টিচার লাভ ইউ?", a: "Yes, my teacher loves me very much.", m: "হ্যাঁ, আমার শিক্ষক আমাকে ভালোবাসেন।", c1: "🍎", c2: "👩‍🏫"},
+        {q: "What color is your favorite dress?", p: "হোয়াট কালার ইজ ইয়োর ফেভারিট ড্রেস?", a: "My favorite dress is blue.", m: "আমার প্রিয় পোশাকের রঙ নীল।", c1: "👗", c2: "💙"},
+        {q: "Did you see the moon last night?", p: "ডিড ইউ সি দ্য মুন লাস্ট নাইট?", a: "Yes, I saw the bright moon.", m: "হ্যাঁ, আমি উজ্জ্বল চাঁদ দেখেছি।", c1: "🌙", c2: "⭐"},
+        {q: "Do you know how to swim?", p: "ডু ইউ নো হাউ টু সুইম?", a: "No, I am learning how to swim.", m: "না, আমি সাঁতার কাটা শিখছি।", c1: "🏊", c2: "🌊"},
+        {q: "Why do we wear a sweater?", p: "হোয়াই ডু উই ওয়্যার আ সোয়েটার?", a: "We wear it because it is cold in winter.", m: "শীতকালে ঠান্ডা লাগে বলে আমরা এটি পরি।", c1: "❄️", c2: "🧶"},
+        {q: "Does your friend have a toy car?", p: "ডাজ ইয়োর ফ্রেন্ড হ্যাভ আ টয় কার?", a: "Yes, my friend has a toy car.", m: "হ্যাঁ, আমার বন্ধুর একটি খেলনা গাড়ি আছে।", c1: "🏎️", c2: "🎁"},
+        {q: "Do you like to draw pictures?", p: "ডু ইউ লাইক টু ড্র পিকচার্স?", a: "Yes, I like to draw flowers.", m: "হ্যাঁ, আমি ফুল আঁকতে পছন্দ করি।", c1: "🎨", c2: "🖌️"},
+        {q: "When do you have your breakfast?", p: "ওয়েন ডু ইউ হ্যাভ ইয়োর ব্রেকফাস্ট?", a: "I have my breakfast at 8 o'clock.", m: "আমি সকাল ৮টায় নাস্তা করি।", c1: "🥣", c2: "🌞"},
+        {q: "Did you drink your milk?", p: "ডিড ইউ ড্রিঙ্ক ইয়োর মিল্ক?", a: "Yes, I drank my milk today.", m: "হ্যাঁ, আমি আজ দুধ খেয়েছি।", c1: "🥛", c2: "💪"},
+        {q: "Does a bird fly in the sky?", p: "ডাজ আ বার্ড ফ্লাই ইন দ্য স্কাই?", a: "Yes, a bird flies high in the sky.", m: "হ্যাঁ, পাখি আকাশে উঁচুতে ওড়ে।", c1: "🦅", c2: "☁️"},
+        {q: "Do you have a favorite cartoon?", p: "ডু ইউ হ্যাভ আ ফেভারিট কার্টুন?", a: "Yes, my favorite is Mickey Mouse.", m: "হ্যাঁ, আমার প্রিয় কার্টুন মিকি মাউস।", c1: "🐭", c2: "📺"},
+        {q: "Why should we eat vegetables?", p: "হোয়াই শুড উই ইট ভেজিটেবলস?", a: "We should eat them to stay healthy.", m: "সুস্থ থাকার জন্য সবজি খাওয়া উচিত।", c1: "🥗", c2: "🥦"},
+        {q: "Are you a good boy/girl?", p: "আর ইউ আ গুড বয়/গার্ল?", a: "Yes, I am a very good boy/girl.", m: "হ্যাঁ, আমি খুব ভালো ছেলে/মেয়ে।", c1: "🌟", c2: "😇"}
+    ];
+
+    let currentIdx = 0;
+    const wrapper = document.getElementById('card-wrapper');
+
+    data.forEach((item, i) => {
+        const card = document.createElement('div');
+        card.className = `card ${i === 0 ? 'active' : ''}`;
+        card.id = `card-${i}`;
+        card.innerHTML = `
+            <div class="corner-3d top-left">${item.c1}</div>
+            <div class="corner-3d bottom-right">${item.c2}</div>
+            <div class="level-header">LEVEL ${i + 1}</div>
+            
+            <div class="question-box">
+                <p class="question-text">Q: ${item.q}</p>
+                <p class="pron-text">${item.p}</p>
+            </div>
+
+            <div class="answer-box">
+                <p class="answer-text">A: ${item.a}</p>
+                <p class="meaning-text">${item.m}</p>
+            </div>
+
+            <div class="nav-container">
+                <button onclick="prevCard()" ${i === 0 ? 'disabled' : ''}>Back</button>
+                <button onclick="nextCard()">${i === data.length - 1 ? 'Finish' : 'Next'}</button>
+            </div>
+
+            <div class="progress-bar">Level ${i + 1} / ${data.length}</div>
+        `;
+        wrapper.appendChild(card);
+    });
+
+    function nextCard() {
+        if (currentIdx < data.length - 1) {
+            document.getElementById(`card-${currentIdx}`).classList.remove('active');
+            currentIdx++;
+            document.getElementById(`card-${currentIdx}`).classList.add('active');
+        } else {
+            alert("Congratulations! Star Traveler, You have finished all lessons! 🚀✨");
+        }
+    }
+
+    function prevCard() {
+        if (currentIdx > 0) {
+            document.getElementById(`card-${currentIdx}`).classList.remove('active');
+            currentIdx--;
+            document.getElementById(`card-${currentIdx}`).classList.add('active');
+        }
+    }
+</script>
+
+</body>
+</html>
